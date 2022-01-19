@@ -65,55 +65,43 @@ public abstract class DefaultMappingsProvider implements IMappingsProvider {
 
         URL intermediaryURL;
 
-        try {
-            intermediaryURL = new URL(intermediaryMapping);
-        } catch(MalformedURLException e) {
-            throw new Error(e);
+        intermediaryURL = new URL(intermediaryMapping);
+
+        String intermediaryFileBase = intermediaryURL.getFile().substring(intermediaryURL.getFile().lastIndexOf("/")).substring(1).replace(".jar", "");
+
+        File intermediaryMappings = new File(temp, intermediaryFileBase + ".tiny");
+
+        if(!intermediaryMappings.exists()) {
+            File intermediaryMappingsFile = new File(temp, intermediaryFileBase + ".jar");
+            FileUtils.copyURLToFile(intermediaryURL, intermediaryMappingsFile);
+
+            JarFile intermediaryJARFile = new JarFile(intermediaryMappingsFile);
+            FileUtils.copyInputStreamToFile(intermediaryJARFile.getInputStream(new ZipEntry("mappings/mappings.tiny")), intermediaryMappings);
+            intermediaryJARFile.close();
         }
 
-        try {
-            String intermediaryFileBase = intermediaryURL.getFile().substring(intermediaryURL.getFile().lastIndexOf("/")).substring(1).replace(".jar", "");
+        this.intermediaryTree = TinyMappingFactory.load(new BufferedReader(new FileReader(intermediaryMappings)));
 
-            File intermediaryMappings = new File(temp, intermediaryFileBase + ".tiny");
+        this.namedTree = setupNamedMappings(temp, version, intermediaryTree);
 
-            if(!intermediaryMappings.exists()) {
-                File intermediaryMappingsFile = new File(temp, intermediaryFileBase + ".jar");
-                FileUtils.copyURLToFile(intermediaryURL, intermediaryMappingsFile);
+        this.parentClasses = new HashMap<>();
+        JarFile jarFile = new JarFile(new File(minecraftFile, "client-" + version + ".jar"));
+        Enumeration<JarEntry> entries = jarFile.entries();
+        while(entries.hasMoreElements()) {
+            JarEntry entry = entries.nextElement();
+            if(entry.getName().endsWith(".class")) {
+                ClassNode classNode = new ClassNode();
+                ClassReader classReader = new ClassReader(jarFile.getInputStream(entry));
+                classReader.accept(classNode, 0);
 
-                JarFile intermediaryJARFile = new JarFile(intermediaryMappingsFile);
-                FileUtils.copyInputStreamToFile(intermediaryJARFile.getInputStream(new ZipEntry("mappings/mappings.tiny")), intermediaryMappings);
-                intermediaryJARFile.close();
+                List<String> parents = parentClasses.computeIfAbsent(classNode.name, k -> new ArrayList<>());
+                parents.add(classNode.superName);
+                parents.addAll(classNode.interfaces);
             }
-
-            setupNamedMappings(temp, version);
-
-            this.intermediaryTree = TinyMappingFactory.load(new BufferedReader(new FileReader(intermediaryMappings)));
-
-            this.namedTree = loadNamedMappings(intermediaryTree);
-
-            this.parentClasses = new HashMap<>();
-            JarFile jarFile = new JarFile(new File(minecraftFile, "client-" + version + ".jar"));
-            Enumeration<JarEntry> entries = jarFile.entries();
-            while(entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
-                if(entry.getName().endsWith(".class")) {
-                    ClassNode classNode = new ClassNode();
-                    ClassReader classReader = new ClassReader(jarFile.getInputStream(entry));
-                    classReader.accept(classNode, 0);
-
-                    List<String> parents = parentClasses.computeIfAbsent(classNode.name, k -> new ArrayList<>());
-                    parents.add(classNode.superName);
-                    parents.addAll(classNode.interfaces);
-                }
-            }
-        } catch(IOException e) {
-            e.printStackTrace();
         }
     }
 
-    protected abstract void setupNamedMappings(File temp, String version) throws IOException, NoSuchMappingsException;
-
-    protected abstract TinyTree loadNamedMappings(TinyTree intermediaryTree);
+    protected abstract TinyTree setupNamedMappings(File temp, String version, TinyTree intermediaryTree) throws IOException, NoSuchMappingsException;
 
     @Override
     public Remapper getRemapper(Direction direction) {

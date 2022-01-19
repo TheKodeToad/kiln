@@ -44,52 +44,35 @@ public class YarnMappingsProvider extends DefaultMappingsProvider {
         }
     };
 
-    private TinyTree yarnNamedTree;
-
     @Override
     public String getID() {
         return "yarn";
     }
 
     @Override
-    protected void setupNamedMappings(File temp, String version) throws IOException, NoSuchMappingsException {
+    protected TinyTree setupNamedMappings(File temp, String version, TinyTree intermediaryTree) throws IOException, NoSuchMappingsException {
         String named = yarnMappings.get(version);
-
-        URL namedURL;
 
         if(named == null) {
             throw new NoSuchMappingsException(version);
         }
 
-        try {
-            namedURL = new URL(named);
-        } catch(MalformedURLException e) {
-            throw new Error(e);
-        }
+        URL namedURL = new URL(named);
 
         String namedFileBase = namedURL.getFile().substring(namedURL.getFile().lastIndexOf("/")).substring(1)
                 .replace(".jar", "");
         File namedMappings = new File(temp, namedFileBase + ".tiny");
 
-        try {
-            if(!namedMappings.exists()) {
-                File namedMappingsFile = new File(temp, namedFileBase + ".jar");
-                FileUtils.copyURLToFile(namedURL, namedMappingsFile);
+        if(!namedMappings.exists()) {
+            File namedMappingsFile = new File(temp, namedFileBase + ".jar");
+            FileUtils.copyURLToFile(namedURL, namedMappingsFile);
 
-                JarFile namedJARFile = new JarFile(namedMappingsFile);
-                FileUtils.copyInputStreamToFile(namedJARFile.getInputStream(new ZipEntry("mappings/mappings.tiny")), namedMappings);
-                namedJARFile.close();
-            }
-
-            this.yarnNamedTree = TinyMappingFactory.load(new BufferedReader(new FileReader(namedMappings)));
-        } catch(IOException e) {
-            throw e;
+            JarFile namedJARFile = new JarFile(namedMappingsFile);
+            FileUtils.copyInputStreamToFile(namedJARFile.getInputStream(new ZipEntry("mappings/mappings.tiny")), namedMappings);
+            namedJARFile.close();
         }
-    }
 
-    @Override
-    protected TinyTree loadNamedMappings(TinyTree intermediaryTree) {
-        return yarnNamedTree;
+        return TinyMappingFactory.load(new BufferedReader(new FileReader(namedMappings)));
     }
 
 }
