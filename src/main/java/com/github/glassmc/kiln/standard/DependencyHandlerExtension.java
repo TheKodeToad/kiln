@@ -21,7 +21,7 @@ import java.util.*;
 @SuppressWarnings("unused")
 public class DependencyHandlerExtension {
 
-    public static FileCollection minecraft(String id, String version, String mappingsProviderId) {
+    public static FileCollection minecraft(String id, String version, String mappingsProviderId) throws IOException {
         KilnStandardPlugin plugin = KilnStandardPlugin.getInstance();
         File pluginCache = plugin.getCache();
 
