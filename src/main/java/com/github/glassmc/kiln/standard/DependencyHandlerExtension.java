@@ -1,7 +1,6 @@
 package com.github.glassmc.kiln.standard;
 
 import com.github.glassmc.kiln.standard.mappings.IMappingsProvider;
-import com.github.glassmc.kiln.standard.mappings.MojangMappingsProvider;
 import com.github.glassmc.kiln.common.Util;
 import com.github.glassmc.kiln.standard.mappings.NoSuchMappingsException;
 import com.github.glassmc.kiln.standard.mappings.ObfuscatedMappingsProvider;
@@ -30,9 +29,6 @@ public class DependencyHandlerExtension {
         switch(mappingsProviderId) {
             case "yarn":
                 mappingsProvider = new YarnMappingsProvider();
-                break;
-            case "mojang":
-                mappingsProvider = new MojangMappingsProvider();
                 break;
             case "obfuscated":
             default:
