@@ -38,9 +38,9 @@ public class YarnMappingsProvider extends DefaultMappingsProvider {
             put("1.16.4", "https://maven.fabricmc.net/net/fabricmc/yarn/1.16.4+build.9/yarn-1.16.4+build.9-v2.jar");
             put("1.16.5", "https://maven.fabricmc.net/net/fabricmc/yarn/1.16.5+build.10/yarn-1.16.5+build.10-v2.jar");
             put("1.17", "https://maven.fabricmc.net/net/fabricmc/yarn/1.17+build.13/yarn-1.17+build.13-v2.jar");
-            put("1.17.1", "https://maven.fabricmc.net/net/fabricmc/yarn/1.17.1+build.10/yarn-1.17.1+build.65-v2.jar");
+            put("1.17.1", "https://maven.fabricmc.net/net/fabricmc/yarn/1.17.1+build.13/yarn-1.17.1+build.13-v2.jar");
             put("1.18", "https://maven.fabricmc.net/net/fabricmc/yarn/1.18+build.1/yarn-1.18+build.1-v2.jar");
-            put("1.18.1", "https://maven.fabricmc.net/net/fabricmc/yarn/1.18.1+build.5/yarn-1.18.1+build.5-v2.jar");
+            put("1.18.1", "https://maven.fabricmc.net/net/fabricmc/yarn/1.18.1+build.22/yarn-1.18.1+build.22-v2.jar");
         }
     };
 
@@ -80,8 +80,6 @@ public class YarnMappingsProvider extends DefaultMappingsProvider {
                 FileUtils.copyInputStreamToFile(namedJARFile.getInputStream(new ZipEntry("mappings/mappings.tiny")), namedMappings);
                 namedJARFile.close();
             }
-
-            FileUtils.copyURLToFile(namedURL, temp);
 
             this.yarnNamedTree = TinyMappingFactory.load(new BufferedReader(new FileReader(namedMappings)));
         } catch(IOException e) {
